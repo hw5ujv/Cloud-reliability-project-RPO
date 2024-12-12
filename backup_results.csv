@@ -1,0 +1,6 @@
+scenario_name,num_files,min_file_kb,max_file_kb,backup_fraction,deletion_fraction,RTO_seconds,baseline_access_time_seconds
+Automated Backup and Restore Scenario,100,10,50,0.75,0.5,4.910296678543091,0.5499007701873779
+Automated Backup and Restore Scenario,500,10,1024,0.5,0.5,21.170408725738525,5.395226716995239
+Automated Backup and Restore Scenario,1000,50,1024,0.9,0.5,70.2683584690094,12.552976846694946
+Automated Backup and Restore Scenario,500,10,512,0.25,0.5,10.912871360778809,5.192370414733887
+Automated Backup and Restore Scenario,100,10,100,0.75,0.8,5.543245315551758,0.6845240592956543

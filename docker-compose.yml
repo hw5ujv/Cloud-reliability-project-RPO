@@ -1,0 +1,58 @@
+version: "3.9"
+
+networks:
+  minio-net:
+    driver: bridge
+
+services:
+  minio-region1:
+    build:
+      context: .
+    image: ubuntu-minio
+    container_name: minio-region1
+    command: minio server --console-address ":9101" /data
+    ports:
+      - "9001:9000"  # API
+      - "9101:9101"  # WebUI
+    volumes:
+      - ./data/region1:/data
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    networks:
+      - minio-net
+
+  minio-region2:
+    build:
+      context: .
+    image: ubuntu-minio
+    container_name: minio-region2
+    command: minio server --console-address ":9102" /data
+    ports:
+      - "9002:9000"  # API
+      - "9102:9102"  # WebUI
+    volumes:
+      - ./data/region2:/data
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    networks:
+      - minio-net
+
+  minio-raid:
+    image: minio/minio
+    container_name: minio-raid
+    command: minio server --console-address ":9103" /data1 /data2 /data3 /data4
+    ports:
+      - "9003:9000"
+      - "9103:9103"
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    volumes:
+      - ./data1:/data1
+      - ./data2:/data2
+      - ./data3:/data3
+      - ./data4:/data4
+    networks:
+      - minio-net

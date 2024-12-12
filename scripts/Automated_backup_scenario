@@ -1,0 +1,101 @@
+import os
+import time
+import random
+from minio import Minio
+
+# MinIO client configuration
+region1 = Minio("localhost:9001", access_key="minioadmin", secret_key="minioadmin", secure=False)
+backup_dir = "./backups"
+sample_data_dir = "./sample_data"
+bucket_name = "test-bucket"
+
+# Generate a large dataset with varying file sizes
+def generate_large_dataset(num_files=100):
+    print(f"Generating {num_files} files...")
+    os.makedirs(sample_data_dir, exist_ok=True)
+    for i in range(num_files):
+        filename = f"file_{i+1}.txt"
+        size_kb = random.randint(1, 1024)  # Random size between 1 KB and 1 MB
+        file_path = os.path.join(sample_data_dir, filename)
+        with open(file_path, "w") as f:
+            content = f"File Name: {filename}\n" + ("Sample Data\n" * (size_kb * 1024 // 11))
+            f.write(content)
+        print(f"Generated: {filename} ({size_kb} KB)")
+
+# Upload files to the bucket
+def upload_files(bucket_name):
+    print(f"Uploading files to bucket: {bucket_name}")
+    if not region1.bucket_exists(bucket_name):
+        region1.make_bucket(bucket_name)
+    for filename in os.listdir(sample_data_dir):
+        file_path = os.path.join(sample_data_dir, filename)
+        region1.fput_object(bucket_name, filename, file_path)
+        print(f"Uploaded: {filename}")
+
+# Create a backup of a subset of files to simulate partial backup
+def create_partial_backup(bucket_name, backup_fraction=0.5):
+    print(f"Creating a partial backup for bucket: {bucket_name}")
+    objects = list(region1.list_objects(bucket_name, recursive=True))
+    random.shuffle(objects)  # Randomize the order of files
+    backup_count = int(len(objects) * backup_fraction)
+    objects_to_backup = objects[:backup_count]
+    os.makedirs(backup_dir, exist_ok=True)
+
+    for obj in objects_to_backup:
+        try:
+            # Check if the object still exists before backing up
+            data = region1.get_object(bucket_name, obj.object_name)
+            backup_file_path = os.path.join(backup_dir, obj.object_name)
+            with open(backup_file_path, "wb") as backup_file:
+                for d in data.stream(32 * 1024):
+                    backup_file.write(d)
+            print(f"Backed up: {obj.object_name}")
+        except Exception as e:
+            print(f"Failed to back up {obj.object_name}: {e}")
+
+    print("Partial backup completed!")
+
+# Simulate partial failure by randomly deleting files
+def simulate_partial_failure(bucket_name):
+    print("Simulating partial failure...")
+    objects = list(region1.list_objects(bucket_name, recursive=True))
+    failure_count = len(objects) // 2  # Delete 50% of the files
+    objects_to_delete = random.sample(objects, failure_count)
+
+    for obj in objects_to_delete:
+        region1.remove_object(bucket_name, obj.object_name)
+        print(f"Deleted: {obj.object_name}")
+
+# Restore files from backup
+def restore_from_backup(bucket_name):
+    print("Restoring from backup...")
+    start_time = time.time()
+    for filename in os.listdir(backup_dir):
+        file_path = os.path.join(backup_dir, filename)
+        region1.fput_object(bucket_name, filename, file_path)
+        print(f"Restored: {filename}")
+    recovery_time = time.time() - start_time
+    print(f"Restoration completed! Recovery Time: {recovery_time:.2f} seconds")
+    return recovery_time
+
+# Main function
+def main():
+    print("Starting Backup and Restore Scenario...")
+    # Step 1: Generate a large dataset
+    generate_large_dataset(100)
+
+    # Step 2: Upload files to the bucket
+    upload_files(bucket_name)
+
+    # Step 3: Create a partial backup
+    create_partial_backup(bucket_name, backup_fraction=0.75)
+
+    # Step 4: Simulate a partial failure
+    simulate_partial_failure(bucket_name)
+
+    # Step 5: Restore files from backup and measure recovery time
+    recovery_time = restore_from_backup(bucket_name)
+    print(f"Recovery Time Objective (RTO): {recovery_time:.2f} seconds")
+
+if __name__ == "__main__":
+    main()

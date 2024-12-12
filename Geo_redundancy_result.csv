@@ -1,0 +1,4 @@
+scenario_name,num_files,min_file_kb,max_file_kb,replication_used,RTO_seconds,baseline_access_time_seconds
+Geo-Redundancy Failover Test,100,10,50,True,0.8101530075073242,0.5717227458953857
+Geo-Redundancy Failover Test,500,50,512,True,4.658222675323486,4.61597204208374
+Geo-Redundancy Failover Test,1000,10,1024,True,13.817471027374268,18.41399383544922
