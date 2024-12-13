@@ -17,7 +17,7 @@ The experiments focus on measuring:
 
 - Docker and Docker Compose installed.
 - Python 3.x environment.
-- MinIO Python client library (install via `pip install minio` or `pip install -r requirements.txt` if available).
+- MinIO Python client library (install via `pip install minio`).
 
 ## Directory Structure
 
@@ -33,3 +33,14 @@ The experiments focus on measuring:
    ```bash
    docker-compose build
    docker-compose up -d
+
+2. **Check Container Status: **
+   ```bash
+   docker ps
+3. **Access MinIO Consoles: **
+   Region 1: http://localhost:9101
+   Region 2: http://localhost:9102
+   RAID Setup: http://localhost:9103
+   **Login Credentials:**
+      Username: minioadmin
+      Password: minioadmin
